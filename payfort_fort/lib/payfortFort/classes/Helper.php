@@ -56,7 +56,7 @@ class Payfort_Fort_Helper extends Payfort_Fort_Super
     }
 
     /**
-     * Convert Amount with dicemal points
+     * Convert Amount with decimal points
      * @param decimal $amount
      * @param decimal $currency_value
      * @param string  $currency_code
@@ -74,8 +74,39 @@ class Payfort_Fort_Helper extends Payfort_Fort_Super
         else {
             $new_amount = round($amount, $decimal_points);
         }
+
         $new_amount = $new_amount * (pow(10, $decimal_points));
-        return $new_amount;
+        
+        $rounded_amount = $this->roundAmount($new_amount);
+        return $this->formatAmount($rounded_amount);
+    }
+
+    /**
+     * Round amount
+     * @param decimal $amount
+     * @return decimal
+     */
+    private function roundAmount($amount) {
+        $result = floor($amount);
+        $floor_threshold = 0.1;
+
+        // If the difference between $floored_amount and $new_amount is greater than the floor threshold,
+        // use the ceiling amount to favor the merchant (when in doubt, charge more not less).
+        if ($new_amount - $result >= $floor_threshold) {
+            $result = ceil($amount);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Format amount for use in Payfort API
+     * @param decimal $amount
+     * @return string
+     */
+    private function formatAmount($amount) {
+        // Remove decimal digits, decimal point and thousands separator.
+        return number_format($amount, 0, "", "");
     }
 
     /**
